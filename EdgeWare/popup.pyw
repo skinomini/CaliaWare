@@ -76,10 +76,7 @@ def checkTag(tag) -> bool:
 
 def check_setting(name:str, default:bool=False) -> bool:
     default = False if default is None else default
-    try:
-        return int(settings.get(name)) == 1
-    except:
-        return default
+    return Settings.RAW.get(name, default)
 
 PATH = str(pathlib.Path(__file__).parent.absolute())
 os.chdir(PATH)
@@ -126,7 +123,7 @@ OPACITY = Settings.RAW['lkScaling']
 VIDEO_VOLUME = Settings.RAW['videoVolume'] / 100
 
 VIDEO_VOLUME = min(max(0, VIDEO_VOLUME), 1)
-    
+
 DENIAL_MODE = Settings.RAW['denialMode']
 DENIAL_CHANCE = Settings.RAW['denialChance']
 SUBLIMINAL_MODE = Settings.RAW['popupSubliminals']
@@ -159,13 +156,13 @@ if PANIC_REQUIRES_VALIDATION:
 
 if WEB_OPEN:
     web_dict = ''
-    if os.path.exists(PATH + '\\resource\\web.json'):
-        with open(PATH + '\\resource\\web.json', 'r') as web_file:
-            web_dict = json.loads(web_file.read())
+    if os.path.exists(PATH / 'resource' / 'web.json'):
+        with open(PATH / 'resource' / 'web.json', 'r') as web_file:
+            web_dict = json.load(web_file)
 
 try:
-    with open(PATH + '\\resource\\CAPTIONS.json', 'r') as caption_file:
-        CAPTIONS = json.loads(caption_file.read())
+    with open(PATH / 'resource' / 'CAPTIONS.json', 'r') as caption_file:
+        CAPTIONS = json.load(caption_file)
         try:
             SUBMISSION_TEXT = CAPTIONS['subtext']
         except:

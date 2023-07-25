@@ -30,7 +30,7 @@
     "squareLim": 800,
     "mitosisMode": true,
     "onlyVid": false,
-    "webPopup": 1,
+    "webPopup": true,
     "rotateWallpaper": true,
     "wallpaperTimer": 10,
     "wallpaperVariance": 0,
