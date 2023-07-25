@@ -14,6 +14,8 @@ from tkinter import messagebox, simpledialog, Tk, Frame, Label, Button, RAISED
 from itertools import count, cycle
 from PIL import Image, ImageTk, ImageFilter
 
+from settings import Settings
+
 SYS_ARGS = sys.argv.copy()
 SYS_ARGS.pop(0)
 
@@ -106,29 +108,28 @@ DENIAL_MODE = False
 DENIAL_CHANCE = 0
 SUBLIMINAL_MODE = False
 
-with open(PATH + '\\config.cfg', 'r') as cfg:
-    settings = json.loads(cfg.read())
-    SHOW_CAPTIONS = check_setting('showCaptions')
-    PANIC_DISABLED = check_setting('panicDisabled')
-    MITOSIS_MODE = check_setting('mitosisMode')
-    WEB_OPEN = check_setting('webPopup')
-    WEB_PROB = int(settings['webMod'])
-    PANIC_KEY = settings['panicButton']
-    HAS_LIFESPAN = check_setting('timeoutPopups')
-    LIFESPAN = int(settings['popupTimeout'])
-    MITOSIS_STRENGTH = int(settings['mitosisStrength'])
-    PANIC_REQUIRES_VALIDATION = check_setting('timerMode')
-    LOWKEY_MODE = check_setting('lkToggle')
-    LOWKEY_CORNER = int(settings['lkCorner'])
-    DELAY = int(settings['delay'])
-    OPACITY = int(settings['lkScaling'])
-    VIDEO_VOLUME = float(settings['videoVolume']) / 100
 
-    VIDEO_VOLUME = min(max(0, VIDEO_VOLUME), 1)
-        
-    DENIAL_MODE = check_setting('denialMode')
-    DENIAL_CHANCE = int(settings['denialChance'])
-    SUBLIMINAL_MODE = check_setting('popupSubliminals')
+SHOW_CAPTIONS = Settings.RAW['showCaptions']
+PANIC_DISABLED = Settings.RAW['panicDisabled']
+MITOSIS_MODE = Settings.RAW['mitosisMode']
+WEB_OPEN = Settings.RAW['webPopup']
+WEB_PROB = Settings.RAW['webMod']
+PANIC_KEY = Settings.RAW['panicButton']
+HAS_LIFESPAN = Settings.RAW['timeoutPopups']
+LIFESPAN = Settings.RAW['popupTimeout']
+MITOSIS_STRENGTH = Settings.RAW['mitosisStrength']
+PANIC_REQUIRES_VALIDATION = Settings.RAW['timerMode']
+LOWKEY_MODE = Settings.RAW['lkToggle']
+LOWKEY_CORNER = Settings.RAW['lkCorner']
+DELAY = Settings.RAW['delay']
+OPACITY = Settings.RAW['lkScaling']
+VIDEO_VOLUME = Settings.RAW['videoVolume'] / 100
+
+VIDEO_VOLUME = min(max(0, VIDEO_VOLUME), 1)
+    
+DENIAL_MODE = Settings.RAW['denialMode']
+DENIAL_CHANCE = Settings.RAW['denialChance']
+SUBLIMINAL_MODE = Settings.RAW['popupSubliminals']
 
 #functions for script mode, unused for now
 if checkTag('timeout='):

@@ -5,7 +5,6 @@ import subprocess
 import webbrowser
 import zipfile
 import pathlib
-import ast
 import urllib.request
 import hashlib
 import ctypes
@@ -14,7 +13,9 @@ import logging
 import time
 import requests
 from tkinter import Tk, ttk, simpledialog, messagebox, filedialog, IntVar, BooleanVar, StringVar, Frame, Checkbutton, Button, Scale, Label, Toplevel, Entry, OptionMenu, Listbox, SINGLE, DISABLED, GROOVE, RAISED
-from tkinter import Image, ImageTk
+from PIL import Image, ImageTk
+
+from settings import Settings, load_default_settings
 
 PATH = f'{str(pathlib.Path(__file__).parent.absolute())}\\'
 os.chdir(PATH)
@@ -49,74 +50,8 @@ BOORU_PTAG = '&pid='                                                            
 UPDCHECK_URL = 'http://raw.githubusercontent.com/PetitTournesol/Edgeware/main/EdgeWare/configDefault.dat'
 local_version = '0.0.0_NOCONNECT'
 
-logging.info('opening configDefault')
-with open(f'{PATH}configDefault.dat') as r:
-    defaultSettingLines = r.readlines()
-    varNames = defaultSettingLines[0].split(',')
-    varNames[-1] = varNames[-1].replace('\n', '')
-    defaultVars = defaultSettingLines[1].split(',')
-logging.info(f'done with configDefault\n\tdefault={defaultVars}')
-
-local_version = defaultVars[0]
-
-settings = {}
-for var in varNames:
-    settings[var] = defaultVars[varNames.index(var)]
-
-defaultSettings = settings.copy()
-
-if not os.path.exists(f'{PATH}config.cfg'):
-    logging.warning('no "config.cfg" file found, creating new "config.cfg".')
-    with open(f'{PATH}config.cfg', 'w') as f:
-        f.write(json.dumps(settings))
-    logging.info('created new config file.')
-
-with open(f'{PATH}config.cfg', 'r') as f:
-    logging.info('json loading settings')
-    try:
-        settings = json.loads(f.readline())
-    except Exception as e:
-        logging.fatal(f'could not load settings.\n\nReason: {e}')
-        exit()
-
-
-#inserts new settings if versions are literally different 
-# or if the count of settings between actual and default is different
-if settings['version'] != defaultVars[0] or len(settings) != len(defaultSettings):
-    logging.warning('version difference/settingJson len mismatch, regenerating new settings with missing keys...')
-    tempSettingDict = {}
-    for name in varNames:
-        try:
-            tempSettingDict[name] = settings[name]
-        except:
-            tempSettingDict[name] = defaultVars[varNames.index(name)]
-            logging.info(f'added missing key: {name}')
-    tempSettingDict['version'] = defaultVars[0]
-    settings = tempSettingDict.copy()
-    with open(f'{PATH}config.cfg', 'w') as f:
-        #bugfix for the config crash issue
-        tempSettingDict['wallpaperDat'] = str(tempSettingDict['wallpaperDat']).replace("'", '%^%')
-        tempSettingString = str(tempSettingDict).replace("'", '"')
-        f.write(tempSettingString.replace("%^%", "'"))
-        logging.info('wrote regenerated settings.')
-
-logging.info('converting wallpaper dict string.')
-DEFAULT_WALLPAPERDAT = {'default': 'wallpaper.png'}
-try:
-    if settings['wallpaperDat'] == 'WPAPER_DEF':
-        logging.info('default wallpaper dict inserted.')
-        settings['wallpaperDat'] = DEFAULT_WALLPAPERDAT
-    else:
-        #print(settings['wallpaperDat'])
-        if type(settings['wallpaperDat']) == dict:
-            logging.info('wallpaper object already dict?')
-        else:
-            settings['wallpaperDat'] = ast.literal_eval(settings['wallpaperDat'].replace('\\', '/'))
-            logging.info('evaluated settings wallpaper str to dict.')
-except Exception as e:
-    settings['wallpaperDat'] = DEFAULT_WALLPAPERDAT
-    logging.warning(f'failed to process wallpaper dict.\n\tReason: {e}\nused default wallpaper dict instead.')
-
+settings = Settings.RAW
+defaultSettings = load_default_settings()
 pass_ = ''
 
 def show_window():
@@ -228,8 +163,8 @@ def show_window():
                         )
             logging.warning(f'failed config var loading.\n\tReason: {e}')
             emergencySettings = {}
-            for var in varNames:
-                emergencySettings[var] = defaultVars[varNames.index(var)]
+            for var in settings.keys():
+                emergencySettings[var] = settings[var]
             with open(f'{PATH}config.cfg', 'w') as f:
                 f.write(json.dumps(emergencySettings))
             with open(f'{PATH}config.cfg', 'r') as f:
@@ -424,8 +359,8 @@ def show_window():
     #zipDropdown = OptionMenu(tabGeneral, zipDropVar, *DOWNLOAD_STRINGS)
     #zipDownloadButton = Button(tabGeneral, text='Download Zip', command=lambda: downloadZip(zipDropVar.get(), zipLabel))
     zipLabel = Label(zipGitFrame, text=f'Current Zip:\n{pickZip()}', background='lightgray', wraplength=100)
-    local_verLabel = Label(verFrame, text=f'Local Version:\n{defaultVars[0]}')
-    web_verLabel = Label(verFrame, text=f'GitHub Version:\n{webv}', bg=('SystemButtonFace' if (defaultVars[0] == webv) else 'red'))
+    local_verLabel = Label(verFrame, text=f'Local Version:\n{settings["version"]}')
+    web_verLabel = Label(verFrame, text=f'GitHub Version:\n{webv}', bg=('SystemButtonFace' if (settings['version'] == webv) else 'red'))
     openGitButton = Button(zipGitFrame, text='Open Github', command=lambda: webbrowser.open('https://github.com/PetitTournesol/Edgeware'))
 
     infoHostFrame.pack(fill='x')
@@ -740,7 +675,7 @@ def show_window():
             try:
                 img = Image.open(selectedFile.name).convert('RGB')
                 img.save(os.path.join(PATH, 'default_assets', 'default_win10.jpg'))
-                pHoldImageR = ImageTk.PhotoImage(img.resize((int(root.winfo_screenwidth()*0.13), int(root.winfo_screenheight()*0.13)), Image.NEAREST))
+                pHoldImageR = ImageTk.ImageTk(img.resize((int(root.winfo_screenwidth()*0.13), int(root.winfo_screenheight()*0.13)), Image.NEAREST))
                 panicWallpaperLabel.config(image=pHoldImageR)
                 panicWallpaperLabel.update_idletasks()
             except Exception as e:
@@ -982,7 +917,7 @@ def write_save(varList:list[StringVar | IntVar | BooleanVar], nameList:list[str]
             logging.warning(f'failed timer file modifying\n\tReason: {errText}')
             pass
 
-    for name in varNames:
+    for name in settings.keys():
         try:
             p = varList[nameList.index(name)].get()
             #standard named variables
@@ -1235,3 +1170,4 @@ if __name__ == '__main__':
     except Exception as e:
         logging.fatal(f'Config encountered fatal error:\n{e}')
         messagebox.showerror('Could not start', f'Could not start config.\n[{e}]')
+        raise e

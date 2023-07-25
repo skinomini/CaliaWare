@@ -18,6 +18,8 @@ import sys
 from dataclasses import dataclass
 from tkinter import messagebox, simpledialog
 
+from settings import Settings, save_settings
+
 PATH = str(pathlib.Path(__file__).parent.absolute())
 os.chdir(PATH)
 
@@ -25,94 +27,27 @@ os.chdir(PATH)
 if not os.path.exists(os.path.join(PATH, 'logs')):
     os.mkdir(os.path.join(PATH, 'logs'))
 logging.basicConfig(filename=os.path.join(PATH, 'logs', time.asctime().replace(' ', '_').replace(':', '-') + '-ew_start.txt'), format='%(levelname)s:%(message)s', level=logging.DEBUG)
-logging.info('Started start logging successfully.')
+logging.info('Started logging successfully.')
 
 SYS_ARGS = sys.argv.copy()
 SYS_ARGS.pop(0)
 logging.info(f'args: {SYS_ARGS}')
 
-settings = {}
-#func for loading settings, really just grouping it
-def load_settings():
-    global settings
-    logging.info('loading config settings...')
-    settings = {}
 
-    #creating objects to check vs live config for version updates
-    with open(PATH + '\\configDefault.dat') as r:
-        logging.info('reading in default config values')
-        defaultLines = r.readlines()
-        default_setting_keys = defaultLines[0].split(',')
-        default_setting_keys[-1] = default_setting_keys[-1].replace('\n', '')
-        default_setting_values = defaultLines[1].split(',')
-
-    for var in default_setting_keys:
-        settings[var] = default_setting_values[default_setting_keys.index(var)]
-
-    #checking if config file exists and then writing the default config settings to a new file if it doesn't
-    if not os.path.exists(f'{PATH}\\config.cfg'):
-        with open(f'{PATH}\\config.cfg', 'w') as f:
-            f.write(json.dumps(settings))
-            logging.warning('could not find config.cfg, wrote new file.')
-
-    #reading in config file
-    with open(f'{PATH}\\config.cfg', 'r') as f:
-        settings = json.loads(f.readline())
-        logging.info('read in settings from config.cfg')
-
-    #if the config version and the version listed in the configdefault version are different to try to update with
-    #new setting tags if any are missing.
-    if settings['version'] != default_setting_values[0]:
-        logging.warning(f'local version {settings["version"]} does not match default version, config will be updated')
-        regen_settings = {}
-        for obj in default_setting_keys:
-            try:
-                regen_settings[obj] = settings[obj]
-            except:
-                logging.info(f'added missing key: {obj}')
-                regen_settings[obj] = default_setting_values[default_setting_keys.index(obj)]
-        regen_settings['version'] = default_setting_values[0]
-        regen_settings = json.loads(str(regen_settings).replace('\'', '"'))
-        settings = regen_settings
-        with open(f'{PATH}\\config.cfg', 'w') as f:
-            f.write(str(regen_settings).replace('\'', '"'))
-            logging.info('wrote updated config to config.cfg')
-
-    #handling proper initialization of wallpapers
-    default_wallpaper_dict = {'default': 'wallpaper.png'}
-    logging.info('converting wallpaper string to dict')
-    try:
-        if settings['wallpaperDat'] == 'WPAPER_DEF':
-            logging.info('default wallpaper data used')
-            settings['wallpaperDat'] = default_wallpaper_dict
-        else:
-            print(settings['wallpaperDat'])
-            if type(settings['wallpaperDat']) == dict:
-                logging.info('wallpaperdat already dict')
-                print('passed')
-            else:
-                settings['wallpaperDat'] = ast.literal_eval(settings['wallpaperDat'].replace('\\', '/'))
-                logging.info('parsed wallpaper dict from string')
-    except Exception as e:
-        settings['wallpaperDat'] = default_wallpaper_dict
-        logging.warning(f'failed to parse wallpaper from string, using default value instead\n\tReason: {e}')
-
-#load settings, if first run open options, then reload options from file
-load_settings()
-if not settings['is_configed']==1:
+#load Settings.RAW, if first run open options, then reload options from file
+if not Settings.RAW['is_configed']:
     logging.info('running config for first setup, is_configed flag is false.')
     subprocess.call('pythonw config.pyw')
-    logging.info('reloading settings')
-    load_settings()
+    logging.info('reloading Settings.RAW')
+    exit(0)
 
 #check for pip_installed flag, if not installed run get-pip.pyw and then install pillow for popups
-if not int(settings['pip_installed'])==1:
+if not int(Settings.RAW['pip_installed'])==1:
     logging.warning('pip is not installed, running get-pip.pyw')
     subprocess.call('python get-pip.pyw')
     logging.warning('pip should be installed, but issues will occur if installation failed.')
-    settings['pip_installed'] = 1
-    with open(f'{PATH}\\config.cfg', 'w') as f:
-        f.write(json.dumps(settings))
+    Settings.RAW['pip_installed'] = 1
+    save_settings(Settings.RAW)
 
 #i liked the emergency fix so much that i just made it import every non-standard lib like that c:
 import requests
@@ -149,44 +84,44 @@ DEFAULT_DISCORD = 'Playing with myself~'
 
 #naming each used variable from config for ease of use later
 #annoyance vars
-DELAY = int(settings['delay'])
-POPUP_CHANCE = int(settings['popupMod'])
-AUDIO_CHANCE = int(settings['audioMod'])
-PROMPT_CHANCE = int(settings['promptMod'])
-VIDEO_CHANCE = int(settings['vidMod'])
-WEB_CHANCE = int(settings['webMod'])
+DELAY = Settings.RAW['delay']
+POPUP_CHANCE = Settings.RAW['popupMod']
+AUDIO_CHANCE = Settings.RAW['audioMod']
+PROMPT_CHANCE = Settings.RAW['promptMod']
+VIDEO_CHANCE = Settings.RAW['vidMod']
+WEB_CHANCE = Settings.RAW['webMod']
 
-VIDEOS_ONLY = int(settings['onlyVid']) == 1
+VIDEOS_ONLY = Settings.RAW['onlyVid']
 
-PANIC_DISABLED = int(settings['panicDisabled']) == 1
+PANIC_DISABLED = Settings.RAW['panicDisabled']
 
 #mode vars
-SHOW_ON_DISCORD = int(settings['showDiscord']) == 1
-LOADING_FLAIR = int(settings['showLoadingFlair'])==1
+SHOW_ON_DISCORD = Settings.RAW['showDiscord']
+LOADING_FLAIR = Settings.RAW['showLoadingFlair']
 
-DOWNLOAD_ENABLED = int(settings['downloadEnabled']) == 1
-USE_WEB_RESOURCE = int(settings['useWebResource']) == 1
+DOWNLOAD_ENABLED = Settings.RAW['downloadEnabled']
+USE_WEB_RESOURCE = Settings.RAW['useWebResource']
 
-MAX_FILL_THREADS = int(settings['maxFillThreads'])
+MAX_FILL_THREADS = Settings.RAW['maxFillThreads']
 
-HIBERNATE_MODE = int(settings['hibernateMode']) == 1
-HIBERNATE_MIN = int(settings['hibernateMin'])
-HIBERNATE_MAX = int(settings['hibernateMax'])
-WAKEUP_ACTIVITY = int(settings['wakeupActivity'])
+HIBERNATE_MODE = Settings.RAW['hibernateMode']
+HIBERNATE_MIN = Settings.RAW['hibernateMin']
+HIBERNATE_MAX = Settings.RAW['hibernateMax']
+WAKEUP_ACTIVITY = Settings.RAW['wakeupActivity']
 
-FILL_MODE = int(settings['fill']) == 1
-FILL_DELAY = int(settings['fill_delay'])
-REPLACE_MODE = int(settings['replace']) == 1
-REPLACE_THRESHOLD = int(settings['replaceThresh'])
+FILL_MODE = Settings.RAW['fill']
+FILL_DELAY = Settings.RAW['fill_delay']
+REPLACE_MODE = Settings.RAW['replace']
+REPLACE_THRESHOLD = Settings.RAW['replaceThresh']
 
-ROTATE_WALLPAPER = int(settings['rotateWallpaper']) == 1
+ROTATE_WALLPAPER = Settings.RAW['rotateWallpaper']
 
-MITOSIS_MODE = int(settings['mitosisMode']) == 1
-LOWKEY_MODE = int(settings['lkToggle']) == 1
+MITOSIS_MODE = Settings.RAW['mitosisMode']
+LOWKEY_MODE = Settings.RAW['lkToggle']
 
-TIMER_MODE = int(settings['timerMode']) == 1
+TIMER_MODE = Settings.RAW['timerMode']
 
-DRIVE_PATH = settings['drivePath']
+DRIVE_PATH = Settings.RAW['drivePath']
 
 def shortcut_script(pth_str:str, keyword:str, script:str, title:str):
     #strings for batch script to write vbs script to create shortcut on desktop
@@ -281,7 +216,7 @@ if os.path.exists(PATH + '\\resource\\web.json'):
         WEB_DICT = json.loads(webF.read())
 
 try:
-    AVOID_LIST = settings['avoidList'].split('>')
+    AVOID_LIST = Settings.RAW['avoidList'].split('>')
 except Exception as e:
     logging.warning(f'failed to set avoid list\n\tReason: {e}')
 
@@ -350,7 +285,7 @@ class TrayHandler:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title('Edgeware')
-        self.timer_mode = settings['timerMode'] == 1
+        self.timer_mode = Settings.RAW['timerMode'] == 1
         
         self.option_list = [pystray.MenuItem('Edgeware Menu', print), pystray.MenuItem('Panic', self.try_panic)]
         self.tray_icon = pystray.Icon('Edgeware',
@@ -424,16 +359,16 @@ def main():
         thread.Thread(target=do_timer).start()
     
     #do downloading for booru stuff
-    if settings.get('downloadEnabled') == 1:
-        booru_downloader:BooruDownloader = BooruDownloader(settings.get('booruName'), settings.get('tagList').split('>'))
+    if Settings.RAW.get('downloadEnabled') == 1:
+        booru_downloader:BooruDownloader = BooruDownloader(Settings.RAW.get('booruName'), Settings.RAW.get('tagList').split('>'))
 
         logging.info('start booru_method thread')
-        if settings.get('downloadMode') == 'First Page':
-            thread.Thread(target=lambda: booru_downloader.download(min_score=int(settings.get('booruMinScore'))), daemon=True).start()
-        elif settings.get('downloadMode') == 'Random Page':
-            thread.Thread(target=lambda: booru_downloader.download_random(min_score=int(settings.get('booruMinScore'))), daemon=True).start()
+        if Settings.RAW.get('downloadMode') == 'First Page':
+            thread.Thread(target=lambda: booru_downloader.download(min_score=int(Settings.RAW.get('booruMinScore'))), daemon=True).start()
+        elif Settings.RAW.get('downloadMode') == 'Random Page':
+            thread.Thread(target=lambda: booru_downloader.download_random(min_score=int(Settings.RAW.get('booruMinScore'))), daemon=True).start()
         else:
-            thread.Thread(target=lambda: booru_downloader.download_all(min_score=int(settings.get('booruMinScore'))), daemon=True).start()
+            thread.Thread(target=lambda: booru_downloader.download_all(min_score=int(Settings.RAW.get('booruMinScore'))), daemon=True).start()
 
     #do downloading from web resource folder
     if USE_WEB_RESOURCE:
@@ -608,7 +543,7 @@ def annoyance():
             thread.Thread(target=replace_images).start()
         time.sleep(float(DELAY) / 1000.0)
 
-#independently attempt to do all active settings with probability equal to their freq value     
+#independently attempt to do all active Settings.RAW with probability equal to their freq value     
 def roll_for_initiative():
     if do_roll(WEB_CHANCE) and HAS_WEB:
         try:
@@ -645,14 +580,14 @@ def roll_for_initiative():
 
 def rotate_wallpapers():
     prv = 'default'
-    base = int(settings['wallpaperTimer'])
-    vari = int(settings['wallpaperVariance'])
-    while len(settings['wallpaperDat'].keys()) > 1:
+    base = int(Settings.RAW['wallpaperTimer'])
+    vari = int(Settings.RAW['wallpaperVariance'])
+    while len(Settings.RAW['wallpaperDat'].keys()) > 1:
         time.sleep(base + rand.randint(-vari, vari))
-        selectedWallpaper = list(settings['wallpaperDat'].keys())[rand.randrange(0, len(settings['wallpaperDat'].keys()))]
+        selectedWallpaper = list(Settings.RAW['wallpaperDat'].keys())[rand.randrange(0, len(Settings.RAW['wallpaperDat'].keys()))]
         while(selectedWallpaper == prv):
-            selectedWallpaper = list(settings['wallpaperDat'].keys())[rand.randrange(0, len(settings['wallpaperDat'].keys()))]
-        ctypes.windll.user32.SystemParametersInfoW(20, 0, os.path.join(PATH, 'resource', settings['wallpaperDat'][selectedWallpaper]), 0)
+            selectedWallpaper = list(Settings.RAW['wallpaperDat'].keys())[rand.randrange(0, len(Settings.RAW['wallpaperDat'].keys()))]
+        ctypes.windll.user32.SystemParametersInfoW(20, 0, os.path.join(PATH, 'resource', Settings.RAW['wallpaperDat'][selectedWallpaper]), 0)
         prv = selectedWallpaper
 
 def do_timer():
