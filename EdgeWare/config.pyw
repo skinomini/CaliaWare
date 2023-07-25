@@ -12,7 +12,9 @@ import ctypes
 import sys
 import logging
 import time
+import requests
 from tkinter import Tk, ttk, simpledialog, messagebox, filedialog, IntVar, BooleanVar, StringVar, Frame, Checkbutton, Button, Scale, Label, Toplevel, Entry, OptionMenu, Listbox, SINGLE, DISABLED, GROOVE, RAISED
+from tkinter import Image, ImageTk
 
 PATH = f'{str(pathlib.Path(__file__).parent.absolute())}\\'
 os.chdir(PATH)
@@ -22,29 +24,6 @@ if not os.path.exists(os.path.join(PATH, 'logs')):
     os.mkdir(os.path.join(PATH, 'logs'))
 logging.basicConfig(filename=os.path.join(PATH, 'logs', time.asctime().replace(' ', '_').replace(':', '-') + '-dbg.txt'), format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logging.info('Started config logging successfully.')
-
-def pip_install(packageName:str):
-    try:
-        logging.info(f'attempting to install {packageName}')
-        subprocess.call(f'py -m pip install {packageName}')
-    except:
-        logging.warning(f'failed to install {packageName} using py -m pip, trying raw pip request')
-        subprocess.call(f'pip install {packageName}')
-        logging.warning(f'{packageName} should be installed, fatal errors will occur if install failed.')
-
-try:
-    import requests
-except:
-    pip_install('requests')
-    import requests
-
-try:
-    import PIL
-    from PIL import Image, ImageTk
-except:
-    logging.warning('failed to import pillow module')
-    pip_install('pillow')
-    from PIL import Image, ImageTk
 
 
 SYS_ARGS = sys.argv.copy()

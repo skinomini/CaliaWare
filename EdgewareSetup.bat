@@ -5,6 +5,8 @@ echo +==============[ Welcome to Edgeware Setup~ ]==============+
 echo Python Version:
 py --version 
 if NOT %errorlevel%==0 goto pyInstall
+echo Installing pip packages.
+pip install -r requirements.txt
 goto run
 :pyInstall
 echo Could not find Python.

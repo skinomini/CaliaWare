@@ -114,80 +114,20 @@ if not int(settings['pip_installed'])==1:
     with open(f'{PATH}\\config.cfg', 'w') as f:
         f.write(json.dumps(settings))
 
-def pip_install(packageName:str):
-    try:
-        logging.info(f'attempting to install {packageName}')
-        subprocess.call(f'py -m pip install {packageName}')
-    except:
-        logging.warning(f'failed to install {packageName} using py -m pip, trying raw pip request')
-        subprocess.call(f'pip install {packageName}')
-        logging.warning(f'{packageName} should be installed, fatal errors will occur if install failed.')
-
 #i liked the emergency fix so much that i just made it import every non-standard lib like that c:
-try:
-    import requests
-except:
-    logging.warning('failed to import requests module')
-    pip_install('requests')
-    import requests
+import requests
+from PIL import Image
+import pystray
+import playsound
+from bs4 import BeautifulSoup
 
-try:
-    import PIL
-    from PIL import Image
-except:
-    logging.warning('failed to import pillow module')
-    pip_install('pillow')
-    from PIL import Image
-
-try:
-    import pypresence
-except:
-    logging.warning('failed to import pypresence module')
-    pip_install('pypresence')
-
-try:
-    import pystray
-except:
-    logging.warning('failed to import pystray module')
-    pip_install('pystray')
-
-try:
-    import playsound
-except:
-    logging.warning('failed to import playsound module')
-    pip_install('playsound==1.2.2')
-    import playsound
-
-try:
-    import videoprops
-except:
-    logging.warning('failed to import videoprops module')
-    pip_install('get-video-properties')
-
-try:
-    import imageio
-except:
-    logging.warning('failed to import imageio module')
-    pip_install('imageio')
-
-try:
-    import moviepy
-except:
-    logging.warning('failed to import moviepy module')
-    pip_install('moviepy')
-
-try:
-    import sounddevice
-except:
-    logging.warning('failed to import moviepy module')
-    pip_install('sounddevice')
-
-try:
-    from bs4 import BeautifulSoup
-except:
-    logging.warning('failed to import bs4 module')
-    pip_install('bs4')
-    from bs4 import BeautifulSoup
+# Those might not be required at all, but I'll keep them here just in case something breaks.
+# import PIL
+# import pypresence
+# import videoprops
+# import imageio
+# import moviepy
+# import sounddevice
 
 #end non-standard imports
 
