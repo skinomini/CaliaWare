@@ -9,8 +9,8 @@ from tkinter import *
 hasData = False
 textData = {}
 maxMistakes = 3
-submission_text = 'I Submit <3'
-command_text    = 'Type for me, slut~'
+submission_text = 'I am brainwashed'
+command_text    = 'Type for me, drone. Write I am brainwashed'
 PATH = str(pathlib.Path(__file__).parent.absolute())
 os.chdir(PATH)
 

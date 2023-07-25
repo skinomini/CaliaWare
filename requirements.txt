@@ -1,0 +1,10 @@
+requests
+pillow==9.5.0
+pypresence
+pystray
+playsound==1.2.2
+get-video-properties
+imageio
+moviepy
+sounddevice
+bs4
