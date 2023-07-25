@@ -4,7 +4,6 @@ import ctypes
 import hashlib
 import os
 import subprocess
-import ast
 import time
 import webbrowser
 import zipfile
@@ -42,11 +41,11 @@ if not Settings.RAW['is_configed']:
     exit(0)
 
 #check for pip_installed flag, if not installed run get-pip.pyw and then install pillow for popups
-if not int(Settings.RAW['pip_installed'])==1:
+if not Settings.RAW['pip_installed']:
     logging.warning('pip is not installed, running get-pip.pyw')
     subprocess.call('python get-pip.pyw')
     logging.warning('pip should be installed, but issues will occur if installation failed.')
-    Settings.RAW['pip_installed'] = 1
+    Settings.RAW['pip_installed'] = True
     save_settings(Settings.RAW)
 
 #i liked the emergency fix so much that i just made it import every non-standard lib like that c:

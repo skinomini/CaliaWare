@@ -78,7 +78,7 @@ def check_setting(name:str, default:bool=False) -> bool:
     default = False if default is None else default
     return Settings.RAW.get(name, default)
 
-PATH = str(pathlib.Path(__file__).parent.absolute())
+PATH = pathlib.Path(__file__).parent.absolute()
 os.chdir(PATH)
 
 ALLOW_SCREAM = True
